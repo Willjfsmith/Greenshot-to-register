@@ -25,6 +25,10 @@ Tiny Windows companion for [Greenshot](https://getgreenshot.org/). After every s
 
 ## Wire it into Greenshot
 
+This sets things up so **every capture opens Greenshot's editor first** — you annotate (arrows, text, redaction), then send the annotated image to Punchlist. The hyperlink in the workbook points at the version with your markup.
+
+### 1. Register Punchlist as an External Command
+
 1. Greenshot tray icon → **Preferences** → **Plugins** → select **External command Plugin** → **Configure**.
 2. **New** command:
    - **Name**: `Punchlist`
@@ -32,21 +36,41 @@ Tiny Windows companion for [Greenshot](https://getgreenshot.org/). After every s
    - **Argument**: `"{0}"` (the quotes matter — paths can contain spaces)
    - **Capture stdout** / **Capture stderr**: both off
 3. **OK** out.
-4. Use it: take a screenshot. From Greenshot's destination picker, choose **Punchlist**. Or set it as the default destination so the form opens automatically every time.
 
-## Daily flow
+### 2. Make the editor the only destination
 
-1. Find an issue in Navisworks → `PrtScn` (or your Greenshot hotkey).
-2. Greenshot saves the PNG and launches the Punchlist tool.
-3. The form pops up:
-   - Project (combobox, from `config.json`)
-   - Discipline (ARCH / STRUCT / MECH / ELEC / CIVIL)
-   - Issue description
-   - Priority (High / Medium / Low)
-   - Assigned To
-   - Status (default: Open)
-4. **Submit** (Enter) → new row in `<project>.xlsx`. The `Image Link` cell is a clickable hyperlink to the screenshot.
-5. Back in Navisworks, no app-switching.
+1. Greenshot tray icon → **Preferences** → **Destination** tab.
+2. Under "Select destination", **uncheck everything except** **Open in image editor**.
+3. Click **OK**.
+
+Now every capture opens Greenshot's editor automatically.
+
+### 3. Set a real save location
+
+The editor needs to save to disk before the path can be handed to Punchlist.
+
+1. Preferences → **Output** tab.
+2. Set **Storage location** to a real folder (e.g. `%USERPROFILE%\Pictures\Greenshot`).
+3. Set **Filename pattern** to something like `%YYYY%-%MM%-%DD%_%HH%-%mm%-%ss%`.
+
+### Daily use
+
+1. Take a screenshot → Greenshot's editor opens.
+2. Annotate.
+3. In the editor toolbar, click the destination dropdown (or **File** menu) → pick **Punchlist**.
+4. The Punchlist form pops up with the path to the annotated image. Fill it in, **Submit**.
+
+## Punchlist form
+
+When the form pops up:
+- Project (combobox, from `config.json`)
+- Discipline (ARCH / STRUCT / MECH / ELEC / CIVIL)
+- Issue description
+- Priority (High / Medium / Low)
+- Assigned To
+- Status (default: Open)
+
+**Submit** (Enter) → new row in `<project>.xlsx`. The `Image Link` cell is a clickable hyperlink to the annotated screenshot.
 
 Keyboard: **Enter** submits, **Esc** cancels.
 
