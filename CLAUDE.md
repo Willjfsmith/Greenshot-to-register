@@ -26,8 +26,13 @@ tests/test_excel.py  # headless smoke (runs anywhere; Tk not required)
 ## Conventions
 
 - One workbook per project: `<exe_dir>/<sanitized_project_name>.xlsx`.
+- Columns: `No., Date, Project, Discipline, Title, Description, Priority, Assigned To, Status, Screenshot, Preview`.
 - `No.` column auto-increments by scanning column A on append.
-- `Image Link` column is `openpyxl` `Hyperlink` to the absolute screenshot path.
+- `Date` is written as a `datetime.date` with number_format `yyyy-mm-dd`.
+- `Preview` is a Pillow-resized thumbnail (~145×75) embedded via `openpyxl.drawing.image.Image` anchored to the cell. Row height fixed at 60pt.
+- `Screenshot` is just the filename — no hyperlink. Full file lives in Greenshot's output folder.
+- AutoFilter range is rewritten on every append to cover the new last row.
+- `excel.append_row` swallows missing-image errors and still logs the row (no thumbnail).
 - All Tk imports are inside `ui.py`; tests must not import `ui.py` so they run on headless CI.
 - `config.py:exe_dir()` returns the PyInstaller exe folder when frozen, else the package parent.
 

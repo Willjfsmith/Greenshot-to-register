@@ -65,14 +65,25 @@ The editor needs to save to disk before the path can be handed to Punchlist.
 When the form pops up:
 - Project (combobox, from `config.json`)
 - Discipline (ARCH / STRUCT / MECH / ELEC / CIVIL)
-- Issue description
+- Title (short, single-line — shown in the register's Title column for quick scanning)
+- Description (multi-line)
 - Priority (High / Medium / Low)
 - Assigned To
 - Status (default: Open)
 
-**Submit** (Enter) → new row in `<project>.xlsx`. The `Image Link` cell is a clickable hyperlink to the annotated screenshot.
+**Submit** (Enter) → new row in `<project>.xlsx` with an embedded thumbnail of the annotated screenshot in the Preview column.
 
 Keyboard: **Enter** submits, **Esc** cancels.
+
+## What the workbook looks like
+
+Columns: `No., Date, Project, Discipline, Title, Description, Priority, Assigned To, Status, Screenshot, Preview`.
+
+- **AutoFilter** is enabled on the header — click the dropdowns to filter by Discipline, Priority, Status, etc.
+- **Date** is a real Excel date (formatted `yyyy-mm-dd`), so chronological sort and "last 7 days" filters work.
+- **Discipline / Priority / Status** are dropdowns (data validation) so future rows stay clean.
+- **Preview** is an embedded thumbnail (~145×75 px) of the annotated PNG. The full-resolution file lives in your Greenshot output folder; the **Screenshot** column has the filename so you can find it.
+- Header row is frozen.
 
 ## Files
 
