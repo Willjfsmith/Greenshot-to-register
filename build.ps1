@@ -21,7 +21,7 @@ if (Test-Path .\greenshot_to_punchlist\resources\icon.ico) {
     --noconsole `
     --name greenshot-to-punchlist `
     @iconArg `
-    .\greenshot_to_punchlist\__main__.py
+    .\run.py
 
 Write-Host ""
 Write-Host "Built: $(Resolve-Path .\dist\greenshot-to-punchlist.exe)"
