@@ -1,0 +1,19 @@
+{
+  "workbook_dir": "",
+  "projects": [
+    "<edit me>"
+  ],
+  "disciplines": [
+    "ARCH",
+    "STRUCT",
+    "MECH",
+    "ELEC",
+    "CIVIL"
+  ],
+  "priorities": [
+    "High",
+    "Medium",
+    "Low"
+  ],
+  "assignees": []
+}
