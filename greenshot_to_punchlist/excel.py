@@ -58,6 +58,10 @@ STATUS_COLUMN = "I"
 # Keep the thumbnail inside that with a small margin.
 THUMBNAIL_MAX_W = 145
 THUMBNAIL_MAX_H = 75
+# Render the embedded PNG at this multiple of the display size so the preview
+# stays sharp when zoomed or viewed on a high-DPI screen. Excel scales the
+# image down to the display dimensions set on the XLImage.
+THUMBNAIL_SCALE = 4
 ROW_HEIGHT_POINTS = 60
 
 HEADER_FONT = Font(bold=True, color="FFFFFF")
@@ -156,7 +160,10 @@ def _next_number(ws) -> int:
 
 def _build_thumbnail(screenshot_path: Path) -> XLImage:
     pil_img = PILImage.open(screenshot_path)
-    pil_img.thumbnail((THUMBNAIL_MAX_W, THUMBNAIL_MAX_H), PILImage.LANCZOS)
+    pil_img.thumbnail(
+        (THUMBNAIL_MAX_W * THUMBNAIL_SCALE, THUMBNAIL_MAX_H * THUMBNAIL_SCALE),
+        PILImage.LANCZOS,
+    )
 
     if pil_img.mode not in ("RGB", "RGBA"):
         pil_img = pil_img.convert("RGB")
@@ -166,8 +173,8 @@ def _build_thumbnail(screenshot_path: Path) -> XLImage:
     buf.seek(0)
 
     xl_img = XLImage(buf)
-    xl_img.width = pil_img.width
-    xl_img.height = pil_img.height
+    xl_img.width = pil_img.width / THUMBNAIL_SCALE
+    xl_img.height = pil_img.height / THUMBNAIL_SCALE
     return xl_img
 
 

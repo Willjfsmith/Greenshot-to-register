@@ -89,8 +89,10 @@ def test_thumbnail_is_embedded(tmp_path, screenshot):
     ws = wb["Punchlist"]
     assert len(ws._images) == 1
     img = ws._images[0]
-    assert img.width <= excel.THUMBNAIL_MAX_W
-    assert img.height <= excel.THUMBNAIL_MAX_H
+    # PNG is supersampled for hi-DPI sharpness; Excel scales it down via the
+    # anchor extent. Bound is MAX * SCALE on the natural PNG dimensions.
+    assert img.width <= excel.THUMBNAIL_MAX_W * excel.THUMBNAIL_SCALE
+    assert img.height <= excel.THUMBNAIL_MAX_H * excel.THUMBNAIL_SCALE
     assert ws.row_dimensions[2].height == excel.ROW_HEIGHT_POINTS
 
 
