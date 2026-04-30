@@ -14,8 +14,11 @@ from pathlib import Path
 
 from openpyxl import Workbook, load_workbook
 from openpyxl.drawing.image import Image as XLImage
+from openpyxl.drawing.spreadsheet_drawing import AnchorMarker, TwoCellAnchor
 from openpyxl.styles import Alignment, Font, PatternFill
 from openpyxl.utils import get_column_letter
+from openpyxl.utils.cell import coordinate_to_tuple
+from openpyxl.utils.units import pixels_to_EMU
 from openpyxl.worksheet.datavalidation import DataValidation
 from PIL import Image as PILImage
 
@@ -58,6 +61,10 @@ STATUS_COLUMN = "I"
 # Keep the thumbnail inside that with a small margin.
 THUMBNAIL_MAX_W = 145
 THUMBNAIL_MAX_H = 75
+# Render the embedded PNG at this multiple of the display size so the preview
+# stays sharp when zoomed or viewed on a high-DPI screen. Excel scales the
+# image down to the display dimensions set on the XLImage.
+THUMBNAIL_SCALE = 4
 ROW_HEIGHT_POINTS = 60
 
 HEADER_FONT = Font(bold=True, color="FFFFFF")
@@ -154,9 +161,26 @@ def _next_number(ws) -> int:
     return max_n + 1
 
 
+def _two_cell_anchor(cell: str, width_px: float, height_px: float) -> TwoCellAnchor:
+    """Build a 'Move and size with cells' anchor so the image hides with its
+    row when filtered (mirrors the xlMoveAndSize VBA placement)."""
+    row, col = coordinate_to_tuple(cell)  # 1-based
+    col0, row0 = col - 1, row - 1
+    width_emu = int(pixels_to_EMU(width_px))
+    height_emu = int(pixels_to_EMU(height_px))
+    return TwoCellAnchor(
+        editAs="twoCell",
+        _from=AnchorMarker(col=col0, colOff=0, row=row0, rowOff=0),
+        to=AnchorMarker(col=col0, colOff=width_emu, row=row0, rowOff=height_emu),
+    )
+
+
 def _build_thumbnail(screenshot_path: Path) -> XLImage:
     pil_img = PILImage.open(screenshot_path)
-    pil_img.thumbnail((THUMBNAIL_MAX_W, THUMBNAIL_MAX_H), PILImage.LANCZOS)
+    pil_img.thumbnail(
+        (THUMBNAIL_MAX_W * THUMBNAIL_SCALE, THUMBNAIL_MAX_H * THUMBNAIL_SCALE),
+        PILImage.LANCZOS,
+    )
 
     if pil_img.mode not in ("RGB", "RGBA"):
         pil_img = pil_img.convert("RGB")
@@ -166,8 +190,8 @@ def _build_thumbnail(screenshot_path: Path) -> XLImage:
     buf.seek(0)
 
     xl_img = XLImage(buf)
-    xl_img.width = pil_img.width
-    xl_img.height = pil_img.height
+    xl_img.width = pil_img.width / THUMBNAIL_SCALE
+    xl_img.height = pil_img.height / THUMBNAIL_SCALE
     return xl_img
 
 
@@ -224,7 +248,9 @@ def append_row(
 
     try:
         thumbnail = _build_thumbnail(screenshot)
-        thumbnail.anchor = f"{PREVIEW_COLUMN}{excel_row}"
+        thumbnail.anchor = _two_cell_anchor(
+            f"{PREVIEW_COLUMN}{excel_row}", thumbnail.width, thumbnail.height
+        )
         ws.add_image(thumbnail)
     except (FileNotFoundError, OSError, PILImage.UnidentifiedImageError):
         # Image missing or unreadable — still log the row, just no thumbnail.

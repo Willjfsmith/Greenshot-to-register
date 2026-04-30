@@ -89,9 +89,27 @@ def test_thumbnail_is_embedded(tmp_path, screenshot):
     ws = wb["Punchlist"]
     assert len(ws._images) == 1
     img = ws._images[0]
-    assert img.width <= excel.THUMBNAIL_MAX_W
-    assert img.height <= excel.THUMBNAIL_MAX_H
+    # PNG is supersampled for hi-DPI sharpness; Excel scales it down via the
+    # anchor extent. Bound is MAX * SCALE on the natural PNG dimensions.
+    assert img.width <= excel.THUMBNAIL_MAX_W * excel.THUMBNAIL_SCALE
+    assert img.height <= excel.THUMBNAIL_MAX_H * excel.THUMBNAIL_SCALE
     assert ws.row_dimensions[2].height == excel.ROW_HEIGHT_POINTS
+
+
+def test_thumbnail_anchor_moves_and_sizes_with_cells(tmp_path, screenshot):
+    """Filters only hide images whose anchor is editAs='twoCell'."""
+    import zipfile
+
+    path = excel.workbook_path_for("Alpha", tmp_path)
+    excel.append_row(path, make_row(screenshot))
+
+    with zipfile.ZipFile(path) as z:
+        drawing_xml = next(
+            z.read(n).decode()
+            for n in z.namelist()
+            if n.startswith("xl/drawings/") and n.endswith(".xml")
+        )
+    assert 'editAs="twoCell"' in drawing_xml
 
 
 def test_autofilter_extends_to_last_row(tmp_path, screenshot):
