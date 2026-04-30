@@ -96,6 +96,22 @@ def test_thumbnail_is_embedded(tmp_path, screenshot):
     assert ws.row_dimensions[2].height == excel.ROW_HEIGHT_POINTS
 
 
+def test_thumbnail_anchor_moves_and_sizes_with_cells(tmp_path, screenshot):
+    """Filters only hide images whose anchor is editAs='twoCell'."""
+    import zipfile
+
+    path = excel.workbook_path_for("Alpha", tmp_path)
+    excel.append_row(path, make_row(screenshot))
+
+    with zipfile.ZipFile(path) as z:
+        drawing_xml = next(
+            z.read(n).decode()
+            for n in z.namelist()
+            if n.startswith("xl/drawings/") and n.endswith(".xml")
+        )
+    assert 'editAs="twoCell"' in drawing_xml
+
+
 def test_autofilter_extends_to_last_row(tmp_path, screenshot):
     path = excel.workbook_path_for("Alpha", tmp_path)
     excel.append_row(path, make_row(screenshot))
